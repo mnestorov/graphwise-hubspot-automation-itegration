@@ -105,14 +105,3 @@ These category slugs (e.g., `email-marketing`) will be used as the keys to track
    - `portalId`
    - `formId`
 6. Paste both values into your WordPress plugin settings
-
----
-
-## 📄 Add the Form to a Page in WordPress
-
-1. Create a WordPress Page (e.g., "Contact Us")
-2. Paste the following inside the content editor:
-
-```html
-<script src="//js.hsforms.net/forms/v2.js"></script>
-[hubspot_tracker_js]
