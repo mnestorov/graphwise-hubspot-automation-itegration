@@ -13,14 +13,17 @@ This plugin requires no coding skills. All you need is a WordPress website, a Hu
 ## 🌟 Plugin Features
 
 ### 1. Personalized Thank You Page
+
 When a visitor fills out a HubSpot form on your WordPress site, they are redirected to a "Thank You" page where their **first name, last name, and email** are displayed dynamically.
 
 ### 2. Category Interest Tracking
+
 The plugin keeps track of which content categories a visitor views. When the user fills out the HubSpot form, their **interest in different topics** is sent along using hidden fields.
 
 This allows you to better understand what your leads care about the most — directly inside HubSpot!
 
 ### 3. Course Completion Integration (Webhook Support)
+
 When a user completes a course in an external **Academy platform**, it sends a **webhook** to your WordPress site:
 - The contact’s record is updated in HubSpot with the latest course completed.
 - A **Certificate API** is triggered to issue their course completion certificate.
@@ -48,7 +51,7 @@ When a user completes a course in an external **Academy platform**, it sends a *
 
 ### 2. Create Categories (for interest tracking)
 
-- Go to Posts > Categories
+- **Go to Posts > Categories**
 - Create at least 3 categories that match topics you write about, like:
    - email-marketing
    - crm-tools
