@@ -108,3 +108,38 @@ These category slugs (e.g., `email-marketing`) will be used as the keys to track
    - `portalId`
    - `formId`
 6. Paste both values into your WordPress plugin settings
+
+## 🧪 How to Test the Course Completion Webhook (Scenario 3)
+
+You can simulate a course completion webhook using Postman or any API testing tool.
+
+### Step-by-Step Instructions
+1. Open Postman or your preferred API client.
+2. Set the method to POST.
+3. Use this URL: `https://yourdomain.com/wp-json/graphwise/v1/course-complete` - Replace `yourdomain.com` with your WordPress site's domain. If you're using **Local by Flywheel**, make sure **Live Link is enabled** and use the public URL provided by Local.
+4. Go to the Body tab, select `raw` and choose `JSON` format.
+5. Paste the following sample JSON:
+```json
+{
+  "email": "jane.doe@example.com",
+  "course_name": "Advanced Automation Strategy"
+}
+```
+6. Click Send.
+
+### What Happens After Sending the Request?
+
+**The plugin will:**
+
+- Search for the contact in HubSpot by the provided email
+- Update their profile with the latest_completed_course property
+- Trigger a mock certificate API call
+
+If HubSpot returns a match, the contact will be updated. The certificate API endpoint is a placeholder and should be replaced with your actual integration URL.
+
+**Example Response:**
+```json
+{
+  "status": "success"
+}
+```
