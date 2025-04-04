@@ -25,7 +25,8 @@ function graphwise_handle_webhook(WP_REST_Request $request) {
     $completed_at = sanitize_text_field($data['completed_at'] ?? '');
     if (empty($email) || empty($course_id)) return new WP_REST_Response(['error' => 'Missing parameters'], 400);
 
-    $token = 'pat-eu1-a76dea28-3948-4dc1-bc7e-55bd8cd34df5';
+    $token = get_option('graphwise_api_token');
+    if (empty($token)) wp_send_json_error(['message' => 'Missing API token']);
 
     $search_response = wp_remote_post('https://api.hubapi.com/crm/v3/objects/contacts/search', [
         'headers' => ['Authorization' => 'Bearer ' . $token, 'Content-Type' => 'application/json'],
