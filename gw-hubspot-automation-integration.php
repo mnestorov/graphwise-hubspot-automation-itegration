@@ -1,9 +1,11 @@
 <?php
 /**
  * Plugin Name: Graphwise - HubSpot Automation Integration
+ * Plugin URI:  https://github.com/mnestorov/graphwise-hubspot-automation-itegration
  * Description: Handles HubSpot form integration, category interest tracking, and course-completion certificate automation.
  * Version: 	1.0
  * Author: 		Martin Nestorov
+ * Author URI:  https://github.com/mnestorov
  */
 
 if (!function_exists('graphwise_footer_scripts')) {
