@@ -1,12 +1,16 @@
 <?php
 /**
  * Graphwise Integration Plugin
+ * 
+ * This plugin integrates with Graphwise to handle course completion events and user data.
+ * It provides a settings page to configure the API token and custom properties.
  *
  * @package GraphwiseIntegration
  */
 
-
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly.
+}
 
 /**
  * Adds a settings page to the WordPress admin menu.
@@ -38,7 +42,7 @@ add_action('admin_init', 'graphwise_register_settings');
 function graphwise_render_settings_page() {
     ?>
     <div class="wrap">
-        <h1>Graphwise Integration | Settings</h1>
+        <h1><?php esc_html_e('Graphwise Integration | Settings', 'graphwise-integration'); ?></h1>
         <form method="post" action="options.php">
             <?php settings_fields('graphwise_settings_group'); ?>
             <?php do_settings_sections('graphwise_settings_group'); ?>
