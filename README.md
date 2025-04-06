@@ -264,7 +264,10 @@ The plugin calls a placeholder certificate API (https://certificate-api.com/gene
 ## Screenshots (HubSpot)
 
 ### Form Fields
-![Alt text](screenshots/01.png "Form fields")
+![Alt text](screenshots/01a.png "Form fields")
+
+### Form Options (Redirect)
+![Alt text](screenshots/01b.png "Form Options (Redirect)")
 
 ### Contact Submissions
 ![Alt text](screenshots/02.png "Contact Submissions")
