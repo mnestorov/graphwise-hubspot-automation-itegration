@@ -235,6 +235,8 @@ The plugin calls a placeholder certificate API (https://certificate-api.com/gene
 - Replace the URL in the `graphwise_handle_webhook` function with your certificate API endpoint.
 - Update the request body if your API requires additional fields.
 
+---
+
 ## Troubleshooting
 1. Thank You Message Not Appearing
 - Ensure the [thank_you_message] shortcode is added to the Thank You page content.
@@ -256,3 +258,50 @@ The plugin calls a placeholder certificate API (https://certificate-api.com/gene
 - Ensure your WordPress site is publicly accessible (e.g., enable Live Link in Local by Flywheel if testing locally).
 - Verify that the HubSpot token in Settings > Graphwise is valid.
 - Check the response in Postman for errors (e.g., authentication issues if the user doesn’t have `edit_posts` capability).
+
+---
+
+## Screenshots (HubSpot)
+
+### Form Fields
+![Alt text](screenshots/01.png "Form fields")
+
+### Contact Submissions
+![Alt text](screenshots/02.png "Contact Submissions")
+
+### Properties
+#### 1. Automation Strategies
+![Alt text](screenshots/03.png "Automation Strategies")
+#### 2. Email Marketing
+![Alt text](screenshots/04.png "Email Marketing")
+#### 3. CRM Tools
+![Alt text](screenshots/05.png "CRM Tools")
+
+---
+
+## Screenshots (WordPress)
+
+### Back-end
+
+#### 1. Plugin Settings Page
+![Alt text](screenshots/06.png "Plugin Settings Page")
+#### 2. WordPress Pages
+![Alt text](screenshots/07.png "WordPress Pages")
+#### 3. Contact page
+![Alt text](screenshots/08.png "Contact page")
+#### 4. Thank you page
+![Alt text](screenshots/09.png "Thank you page")
+#### 5. WordPress Categories
+![Alt text](screenshots/10.png "WordPress Categories")
+
+
+### Front-end
+
+#### 1. WordPress Front-end (Contact page)
+![Alt text](screenshots/11.png "WordPress Front-end (Contact page)")
+
+#### 2. WordPress Front-end (Thank you page)
+![Alt text](screenshots/12.png "WordPress Front-end (Thank you page)")
+
+#### 3. WordPress Front-end (Track categories)
+![Alt text](screenshots/13.png "WordPress Front-end (Track categories)")
