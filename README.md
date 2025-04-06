@@ -53,7 +53,7 @@ When a user completes a course in an external **Academy platform**, it sends a *
 ### 1. Install the Plugin
 - **Log in to your WordPress admin dashboard**.
 - Go to **Plugins > Add New > Upload Plugin**.
-- Upload the plugin ZIP file: `gw-hubspot-automation-integration.zip`.
+- Upload the plugin ZIP file: `graphwise-hubspot-automation-integration.zip`.
 - Click **Activate Plugin**.
 
 ### 2. Create Categories (for Interest Tracking)
