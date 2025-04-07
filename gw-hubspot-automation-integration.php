@@ -142,8 +142,10 @@ if (!function_exists('graphwise_register_rest_route')) {
         register_rest_route('graphwise/v1', '/course-complete', [
             'methods'             => 'POST',
             'callback'            => 'graphwise_handle_webhook',
-            'permission_callback' => function() {
-                return current_user_can('edit_posts'); // Only logged-in users with edit_posts capability (e.g., editors, admins)
+            'permission_callback' => function(WP_REST_Request $request) {
+                $api_key = $request->get_header('X-API-Key');
+                $stored_api_key = get_option('graphwise_webhook_api_key', '');
+                return $api_key && $api_key === $stored_api_key;
             }
         ]);
 
@@ -173,10 +175,27 @@ if (!function_exists('graphwise_handle_webhook')) {
      */
     function graphwise_handle_webhook($request) {
         $params = $request->get_json_params();
-        $email = sanitize_email($params['email']);
-        $course = sanitize_text_field($params['course_name']);
+        $email = sanitize_email($params['email'] ?? '');
+        $course = sanitize_text_field($params['course_name'] ?? '');
+
+        // Log the incoming request
+        error_log('Graphwise Webhook: Received request - Email: ' . $email . ', Course: ' . $course);
+
+        // Validate required fields
+        if (empty($email) || empty($course)) {
+            error_log('Graphwise Webhook Error: Missing email or course_name in request');
+            return new WP_Error('invalid_request', 'Missing email or course_name', ['status' => 400]);
+        }
 
         $token = get_option('graphwise_hubspot_token');
+        if (empty($token)) {
+            error_log('Graphwise Webhook Error: HubSpot token is not configured');
+            return new WP_Error('missing_token', 'HubSpot token is not configured', ['status' => 500]);
+        }
+
+        // Log the token (partially masked for security)
+        $token_preview = substr($token, 0, 5) . '...' . substr($token, -5);
+        error_log('Graphwise Webhook: Using HubSpot token - ' . $token_preview);
 
         // Search contact by email
         $search = wp_remote_post('https://api.hubapi.com/crm/v3/objects/contacts/search', [
@@ -195,28 +214,75 @@ if (!function_exists('graphwise_handle_webhook')) {
             ])
         ]);
 
-        $res = json_decode(wp_remote_retrieve_body($search), true);
-        $id = $res['results'][0]['id'] ?? null;
-
-        if ($id) {
-            // Update contact with course property
-            wp_remote_request("https://api.hubapi.com/crm/v3/objects/contacts/$id", [
-                'method' => 'PATCH',
-                'headers' => [
-                    'Authorization' => "Bearer $token",
-                    'Content-Type' => 'application/json'
-                ],
-                'body' => json_encode([
-                    'properties' => [ 'latest_completed_course' => $course ]
-                ])
-            ]);
+        // Check for errors in the search request
+        if (is_wp_error($search)) {
+            error_log('Graphwise Webhook Error: HubSpot search request failed - ' . $search->get_error_message());
+            return new WP_Error('hubspot_search_failed', 'Failed to search for contact in HubSpot', ['status' => 500]);
         }
 
+        $search_response_code = wp_remote_retrieve_response_code($search);
+        $search_body = wp_remote_retrieve_body($search);
+        $res = json_decode($search_body, true);
+
+        // Log the search response
+        error_log('Graphwise Webhook: HubSpot search response - Status: ' . $search_response_code . ', Body: ' . $search_body);
+
+        if ($search_response_code !== 200) {
+            error_log("Graphwise Webhook Error: HubSpot search failed with status $search_response_code - $search_body");
+            return new WP_Error('hubspot_search_failed', 'HubSpot search failed', ['status' => $search_response_code]);
+        }
+
+        $id = $res['results'][0]['id'] ?? null;
+        if (!$id) {
+            error_log("Graphwise Webhook Error: Contact not found in HubSpot for email: $email");
+            return new WP_Error('contact_not_found', "Contact not found in HubSpot for email: $email", ['status' => 404]);
+        }
+
+        // Log the contact ID
+        error_log('Graphwise Webhook: Found contact in HubSpot - Contact ID: ' . $id);
+
+        // Update contact with course property
+        $update = wp_remote_request("https://api.hubapi.com/crm/v3/objects/contacts/$id", [
+            'method' => 'PATCH',
+            'headers' => [
+                'Authorization' => "Bearer $token",
+                'Content-Type' => 'application/json'
+            ],
+            'body' => json_encode([
+                'properties' => [ 'latest_completed_course' => $course ]
+            ])
+        ]);
+
+        // Check for errors in the update request
+        if (is_wp_error($update)) {
+            error_log('Graphwise Webhook Error: HubSpot update request failed - ' . $update->get_error_message());
+            return new WP_Error('hubspot_update_failed', 'Failed to update contact in HubSpot', ['status' => 500]);
+        }
+
+        $update_response_code = wp_remote_retrieve_response_code($update);
+        $update_body = wp_remote_retrieve_body($update);
+
+        // Log the update response
+        error_log('Graphwise Webhook: HubSpot update response - Status: ' . $update_response_code . ', Body: ' . $update_body);
+
+        if ($update_response_code !== 200) {
+            error_log("Graphwise Webhook Error: HubSpot update failed with status $update_response_code - $update_body");
+            return new WP_Error('hubspot_update_failed', 'HubSpot update failed', ['status' => $update_response_code]);
+        }
+
+        // Log successful update
+        error_log('Graphwise Webhook: Successfully updated contact in HubSpot - Email: ' . $email . ', latest_completed_course: ' . $course);
+
         // Call certificate generation API
-        wp_remote_post('https://certificate-api.com/generate', [
+        $certificate_response = wp_remote_post('https://certificate-api.com/generate', [
             'headers' => [ 'Content-Type' => 'application/json' ],
             'body' => json_encode([ 'email' => $email, 'course' => $course ])
         ]);
+
+        if (is_wp_error($certificate_response)) {
+            error_log('Graphwise Webhook Warning: Certificate API call failed - ' . $certificate_response->get_error_message());
+            // Not returning an error here since this is a mock API and not critical
+        }
 
         return rest_ensure_response(['status' => 'success']);
     }
@@ -354,6 +420,7 @@ if (!function_exists('graphwise_admin_init')) {
         register_setting('graphwise_settings', 'graphwise_thank_you_page_slug', [
             'sanitize_callback' => 'sanitize_title'
         ]);
+        register_setting('graphwise_settings', 'graphwise_webhook_api_key');
 
         add_settings_section(
 			'default', 
@@ -390,6 +457,14 @@ if (!function_exists('graphwise_admin_init')) {
             'graphwise_thank_you_page_slug',
             'Thank You Page Slug',
             'graphwise_render_thank_you_page_slug_field_cb',
+            'graphwise-settings',
+            'default'
+        );
+
+        add_settings_field(
+            'graphwise_webhook_api_key',
+            'Webhook API Key',
+            'graphwise_render_webhook_api_key_field_cb',
             'graphwise-settings',
             'default'
         );
@@ -446,4 +521,17 @@ if (!function_exists('graphwise_render_thank_you_page_slug_field_cb')) {
         echo '<p class="description">Enter the slug of the Thank You page (e.g., "thank-you"). This is the page where users are redirected after form submission.</p>';
     }
 }
-?>
+
+if (!function_exists('graphwise_render_webhook_api_key_field_cb')) {
+    /**
+     * Renders the Webhook API Key input field.
+     *
+     * @since 1.0.0
+     * @return void
+     */
+    function graphwise_render_webhook_api_key_field_cb() {
+        $value = get_option('graphwise_webhook_api_key', '');
+        echo '<input type="text" name="graphwise_webhook_api_key" value="' . esc_attr($value) . '" size="50">';
+        echo '<p class="description">Enter an API key for securing the course completion webhook. This key must be included in the <code>X-API-Key</code> header of webhook requests.</p>';
+    }
+}

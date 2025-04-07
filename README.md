@@ -150,34 +150,66 @@ Retrieved data on Thank You page: {"firstName":"Jane","lastName":"Doe","email":"
 - In HubSpot, go to **CRM > Contacts**, find the contact by email, and confirm that the `interest_*` properties (e.g., `interest_email_marketing`) are populated with the number of category visits.
 
 ### 3. Test the Course Completion Webhook
-You can simulate a course completion webhook using Postman or any API testing tool.
+You can simulate a course completion webhook using Postman or any API testing tool. This webhook updates a HubSpot contact's `interest_latest_completed_course` property with the completed course name and triggers a mock certificate API call.
 
-**Step-by-Step Instructions**
+#### Prerequisites
+Before testing the webhook, ensure the following are set up:
+
+1. **HubSpot Contact**:
+   - A contact with the email `jane.doe@example.com` must exist in HubSpot. You can create this contact by submitting a form on the Contact page (Scenario 2) or manually adding it in HubSpot under **CRM > Contacts**.
+
+2. **HubSpot Property**:
+   - The `interest_latest_completed_course` property must exist in HubSpot for the `Contact` object:
+     - Go to **Settings > Properties** in HubSpot.
+     - Search for `interest_latest_completed_course`.
+     - If it doesn’t exist, create it with the following details:
+       - **Object Type:** Contact
+       - **Label:** Interest Latest Completed Course
+       - **Internal Name:** `interest_latest_completed_course`
+       - **Field Type:** Single-line text
+     - Save the property.
+
+3. **HubSpot Token with Correct Scopes**:
+   - The HubSpot Private App token configured in **Settings > Graphwise > HubSpot Token** must have the `crm.objects.contacts` scope to read and update contacts.
+   - To verify or update the token:
+     - Go to **Settings > Integrations > Private Apps** in HubSpot.
+     - Find the Private App used for this plugin (or create a new one).
+     - In the **Scopes** tab, ensure `crm.objects.contacts` is enabled.
+     - If the scope was added, regenerate the token, copy it, and update it in **Settings > Graphwise > HubSpot Token**.
+
+4. **Webhook API Key**:
+   - An API key must be set in **Settings > Graphwise > Webhook API Key** to authenticate webhook requests. For example, you can set it to `my-secret-key-123`.
+
+#### Step-by-Step Instructions
 1. Open Postman or your preferred API client.
-2. Set the method to POST.
+2. Set the method to **POST**.
 3. Use this URL: `https://yourdomain.com/wp-json/graphwise/v1/course-complete`
-   - Replace yourdomain.com with your WordPress site's domain.
+   - Replace `yourdomain.com` with your WordPress site's domain.
    - If you're using **Local by Flywheel**, enable **Live Link** and use the public URL provided by Local.
-4. Go to the Body tab, select raw, and choose JSON format.
+4. Go to the **Body** tab, select `raw`, and choose `JSON` format.
 5. Paste the following sample JSON:
 
-```json
-{
-  "email": "jane.doe@example.com",
-  "course_name": "Advanced Automation Strategy"
-}
-```
-6. Add a header for authentication (since the endpoint requires `edit_posts` capability):
-- If testing locally, you can log in to WordPress as an admin, copy the `wordpress_logged_in_*` cookie from your browser, and add it to Postman under Cookies.
-- Alternatively, use a nonce-based authentication method if integrating with an external system.
+   ```json
+   {
+      "email": "jane.doe@example.com",
+      "course_name": "Advanced Automation Strategy"
+   }
+   ```
+6. Add a header for authentication:
+   - Key: X-API-Key
+   - Value: The API key you set in Settings > Graphwise > Webhook API Key (e.g., my-secret-key-123).
+
+   ```
+   X-API-Key: my-secret-key-123
+   ```
 7. Click Send.
 
 #### What Happens After Sending the Request?
 
 **The plugin will:**
-- Search for the contact in HubSpot by the provided email.
-- Update their profile with the `latest_completed_course` property (e.g., `Advanced Automation Strategy`).
-- Trigger a mock certificate API call to `https://certificate-api.com/generate` (replace this URL with your actual certificate API endpoint).
+- Search for the contact in HubSpot by the provided email (jane.doe@example.com).
+- Update the contact’s `latest_completed_cours`e property with the course name (e.g., `Advanced Automation Strategy`).
+- Trigger a mock certificate API call to `https://certificate-api.com/generate` (replace this URL with your actual certificate API endpoint if applicable).
 
 **Expected Response:**
 
@@ -191,6 +223,30 @@ You can simulate a course completion webhook using Postman or any API testing to
 - Go to **CRM > Contacts**.
 - Find the contact by email (e.g., jane.doe@example.com).
 - Check that the `latest_completed_course` property is updated to `Advanced Automation Strategy`.
+
+If there's an error, you’ll receive a detailed error message, such as:
+
+- Contact not found:
+   ```json
+   {
+      "code":"contact_not_found",
+      "message":"Contact not found in HubSpot for email: jane.doe@example.com",
+      "data":{
+         "status":404
+      }
+   }  
+   ```
+
+- Permission issue:
+   ```json
+      {
+         "code":"hubspot_update_failed",
+         "message":"HubSpot update failed",
+         "data":{
+            "status":403
+         }
+      }
+   ```
 
 ---
 
