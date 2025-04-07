@@ -197,13 +197,13 @@ You can simulate a course completion webhook using Postman or any API testing to
 ## Plugin Files
 
 **The plugin is structured as follows:**
-
+```
 graphwise-hubspot-automation-integration/
 ├── gw-hubspot-automation-integration.php  # Main plugin file
 └── js/
       ├── footer-scripts.js   # Handles category tracking and Thank You page logic
       └── hubspot-tracker.js  # Handles HubSpot form rendering and category interest injection
-
+```
 ---
 
 ## Advanced Configuration
